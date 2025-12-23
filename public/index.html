@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini-Wallet - Simple Wallet System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .user-selector {
+            margin-bottom: 20px;
+        }
+
+        .user-selector label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .user-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .user-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .balance-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-display .label {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .balance-display .amount {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .balance-display .user-id {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .transaction-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+        }
+
+        .transaction-type.credit {
+            color: #28a745;
+        }
+
+        .transaction-type.debit {
+            color: #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .create-account-section {
+            margin-bottom: 20px;
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .inline-form .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .balance-display .amount {
+                font-size: 2rem;
+            }
+
+            .inline-form {
+                flex-direction: column;
+            }
+
+            .inline-form .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Mini-Wallet</h1>
+            <p>Simple & Secure Wallet System</p>
+        </div>
+
+        <!-- Create Account Section -->
+        <div class="card create-account-section">
+            <h2>Create New Account</h2>
+            <div class="inline-form">
+                <div class="form-group">
+                    <label for="newUserName">User Name</label>
+                    <input type="text" id="newUserName" placeholder="Enter user name" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserEmail">Email Address</label>
+                    <input type="email" id="newUserEmail" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <label for="initialBalance">Initial Balance ($)</label>
+                    <input type="number" id="initialBalance" placeholder="100" min="0" step="0.01" value="100" required>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" onclick="createAccount()">Create Account</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Section -->
+        <div class="card">
+            <h2>Your Balance</h2>
+
+            <div class="user-selector">
+                <label for="currentUser">Select Your Account</label>
+                <select id="currentUser" onchange="loadBalance()">
+                    <option value="">-- Select User --</option>
+                </select>
+            </div>
+
+            <div id="balanceAlert" class="alert"></div>
+
+            <div class="balance-display" id="balanceDisplay" style="display: none;">
+                <div class="label">Current Balance</div>
+                <div class="amount" id="balanceAmount">$0.00</div>
+                <div class="user-id" id="balanceUserId"></div>
+            </div>
+
+            <div id="balanceLoading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading balance...</p>
+            </div>
+        </div>
+
+        <!-- Transfer Section -->
+        <div class="card">
+            <h2>Send Money</h2>
+
+            <div id="transferAlert" class="alert"></div>
+
+            <form id="transferForm" onsubmit="handleTransfer(event)">
+                <div class="form-group">
+                    <label for="recipientId">Recipient User ID</label>
+                    <input
+                        type="text"
+                        id="recipientId"
+                        placeholder="Enter recipient's User ID"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount ($)</label>
+                    <input
+                        type="number"
+                        id="amount"
+                        placeholder="0.00"
+                        min="0.01"
+                        step="0.01"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="transferBtn">
+                    Send Money
+                </button>
+            </form>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="card">
+            <h2>Recent Transactions</h2>
+            <div id="transactionAlert" class="alert"></div>
+            <div id="transactionHistory" class="transaction-history">
+                <p style="text-align: center; color: #999; padding: 20px;">
+                    Select a user to view transactions
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL - Change this to your server URL
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Load users on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUsers();
+        });
+
+        // Show alert message
+        function showAlert(elementId, message, type) {
+            const alertEl = document.getElementById(elementId);
+            alertEl.className = `alert alert-${type} show`;
+            alertEl.textContent = message;
+
+            setTimeout(() => {
+                alertEl.classList.remove('show');
+            }, 5000);
+        }
+
+        // Load all users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`);
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    const select = document.getElementById('currentUser');
+                    select.innerHTML = '<option value="">-- Select User --</option>';
+
+                    data.data.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.name} (${user.email})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showAlert('balanceAlert', 'Error loading users. Please refresh the page.', 'error');
+            }
+        }
+
+        // Create new account
+        async function createAccount() {
+            const name = document.getElementById('newUserName').value.trim();
+            const email = document.getElementById('newUserEmail').value.trim();
+            const balance = parseFloat(document.getElementById('initialBalance').value);
+
+            if (!name) {
+                showAlert('balanceAlert', 'Please enter a user name', 'error');
+                return;
+            }
+
+            if (!email) {
+                showAlert('balanceAlert', 'Please enter an email address', 'error');
+                return;
+            }
+
+            if (isNaN(balance) || balance < 0) {
+                showAlert('balanceAlert', 'Please enter a valid initial balance', 'error');
+                return;
+            }
+
+            // Disable button to prevent double submission
+            const createBtn = document.querySelector('.create-account-section .btn-secondary');
+            if (createBtn.disabled) return; // Already processing
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/accounts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, initialBalance: balance })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('balanceAlert', `Account created successfully! User ID: ${data.data.id}`, 'success');
+                    document.getElementById('newUserName').value = '';
+                    document.getElementById('newUserEmail').value = '';
+                    document.getElementById('initialBalance').value = '100';
+                    loadUsers();
+                } else {
+                    showAlert('balanceAlert', data.message || 'Failed to create account', 'error');
+                }
+            } catch (error) {
+                showAlert('balanceAlert', 'Error creating account. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Account';
+            }
+        }
+
+        // Load balance for selected user
+        async function loadBalance() {
+            const userId = document.getElementById('currentUser').value;
+
+            if (!userId) {
+                document.getElementById('balanceDisplay').style.display = 'none';
+                document.getElementById('transactionHistory').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Select a user to view transactions</p>';
+                return;
+            }
+
+            // Show loading
+            document.getElementById('balanceLoading').style.display = 'block';
+            document.getElementById('balanceDisplay').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/balance/${userId}`);
+                const data = await response.json();
+
+                document.getElementById('balanceLoading').style.display = 'none';
+
+                if (data.success) {
+                    document.getElementById('balanceDisplay').style.display = 'block';
+                    document.getElementById('balanceAmount').textContent = `$${data.data.balance.toFixed(2)}`;
+                    document.getElementById('balanceUserId').textContent = `User: ${data.data.name} | ID: ${userId.substring(0, 8)}...`;
+
+                    // Load transactions
+                    loadTransactions(userId);
+                } else {
+                    showAlert('balanceAlert', data.message || 'Failed to load balance', 'error');
+                }
+            } catch (error) {
+                document.getElementById('balanceLoading').style.display = 'none';
+                showAlert('balanceAlert', 'Error loading balance. Please try again.', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Load transaction history
+        async function loadTransactions(userId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/transactions/${userId}`);
+                const data = await response.json();
+
+                const historyEl = document.getElementById('transactionHistory');
+
+                if (data.success && data.data.length > 0) {
+                    historyEl.innerHTML = data.data.map(tx => {
+                        const isCredit = tx.to.id === userId;
+                        const type = isCredit ? 'credit' : 'debit';
+                        const sign = isCredit ? '+' : '-';
+                        const otherParty = isCredit ? tx.from.name : tx.to.name;
+
+                        return `
+                            <div class="transaction-item">
+                                <div>
+                                    <div class="transaction-type ${type}">
+                                        ${isCredit ? '📥 Received' : '📤 Sent'}
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #666;">
+                                        ${isCredit ? 'From' : 'To'}: ${otherParty}
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #999;">
+                                        ${new Date(tx.timestamp).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div class="transaction-type ${type}" style="font-size: 1.2rem;">
+                                    ${sign}$${tx.amount.toFixed(2)}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    historyEl.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No transactions yet</p>';
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+            }
+        }
+
+        // Handle transfer form submission
+        async function handleTransfer(event) {
+            event.preventDefault();
+
+            const fromUserId = document.getElementById('currentUser').value;
+            const toUserId = document.getElementById('recipientId').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (!fromUserId) {
+                showAlert('transferAlert', 'Please select your account first', 'error');
+                return;
+            }
+
+            if (!toUserId) {
+                showAlert('transferAlert', 'Please enter recipient User ID', 'error');
+                return;
+            }
+
+            if (fromUserId === toUserId) {
+                showAlert('transferAlert', 'Cannot transfer to yourself', 'error');
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                showAlert('transferAlert', 'Please enter a valid amount', 'error');
+                return;
+            }
+
+            // Disable submit button
+            const btn = document.getElementById('transferBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/transfer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        from_user_id: fromUserId,
+                        to_user_id: toUserId,
+                        amount: amount
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('transferAlert', `Successfully sent $${amount.toFixed(2)}!`, 'success');
+                    document.getElementById('transferForm').reset();
+                    loadBalance(); // Reload balance and transactions
+                } else {
+                    showAlert('transferAlert', data.message || 'Transfer failed', 'error');
+                }
+            } catch (error) {
+                showAlert('transferAlert', 'Error processing transfer. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Money';
+            }
+        }
+    </script>
+</body>
+</html>
